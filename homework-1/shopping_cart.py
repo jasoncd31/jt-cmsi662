@@ -53,7 +53,7 @@ inventory = {
 """
 Validates whether or not the desired quantity is available in the inventory
 """
-def validate_in_inventory(sku, desired_quantity):
+def validated_in_inventory(sku, desired_quantity):
     if sku not in inventory:
         raise ValueError(f"Invalid SKU: {sku}")
     if desired_quantity > inventory[sku]:
@@ -62,14 +62,14 @@ def validate_in_inventory(sku, desired_quantity):
 """
 Validates whether or not the catalog has the SKU
 """
-def validate_in_catalog(sku):
+def validated_in_catalog(sku):
     if sku not in catalog:
         raise ValueError(f"Invalid SKU: {sku}")
 
 """
 Checks to see if a customer id follows the specified format
 """
-def validate_customer_id(customer_id):
+def validated_customer_id(customer_id):
     valid_id = re.match(r'[a-zA-Z]{3}\d{5}[a-zA-Z]{2}[-][A|Q]', customer_id)
     if not valid_id:
         raise Exception("Not a valid customer id")
@@ -128,15 +128,15 @@ SKU class to validate SKUs
 class SKU(): 
     def validated(code): 
         # if code isn't a string, throw an error
-        if type(code) != "str":
+        if type(code) != str:
             raise TypeError("SKU must be a string.")
         # if code doesn't match the regex, throw an error
-        if (re.match(r'[A-Z]{3}_[A-Z]{3}_\d{2}$', code)):
+        if (not re.match(r'[A-Z]{3}_[A-Z]{3}_\d{2}$', code)):
             raise TypeError("SKU improperly formatted.")
         return code
     
     def __init__(self, code):
-        code = self.validated(code)
+        code = SKU.validated(code)
         self._code = code
     
     @property
@@ -147,8 +147,7 @@ class SKU():
 Quantity class to validate quantities of an item
 """
 class Quantity():
-
-    def validate(quantity):
+    def validated(quantity):
         if type(quantity) != int:
             raise TypeError("Quantity must be an integer")
         if quantity <= 0:
@@ -158,7 +157,7 @@ class Quantity():
         return quantity
     
     def __init__(self, quantity):
-        self._quantity = Quantity.validate(quantity)
+        self._quantity = Quantity.validated(quantity)
 
     @property
     def quantity(self):
@@ -171,7 +170,7 @@ class ShoppingCart:
     #Creates shopping cart objects for users of our fine website.
     def __init__(self, customer_id):
         self._cart_id = uuid.uuid4()
-        self._customer_id = validate_customer_id(customer_id)
+        self._customer_id = validated_customer_id(customer_id)
         self._items_in_cart = {}
 
     @property
@@ -184,11 +183,11 @@ class ShoppingCart:
     
     @property
     def items_in_cart(self):
-        return self._items_in_cart.deepcopy()
+        return self._items_in_cart.copy()
     
-    def validate_in_cart(self, sku):
+    def validated_in_cart(self, sku):
         SKU.validated(sku)
-        validate_in_catalog(sku)
+        validated_in_catalog(sku)
         if sku in self._items_in_cart:
             return True
         else:
@@ -196,23 +195,23 @@ class ShoppingCart:
 
     def add_item(self, sku, quantity):
         SKU.validated(sku)
-        Quantity.validate(quantity)
-        validate_in_catalog(catalog, sku)
-        validate_in_inventory(sku, quantity)
+        Quantity.validated(quantity)
+        validated_in_catalog(sku)
+        validated_in_inventory(sku, quantity)
         self._items_in_cart[sku] = self._items_in_cart.get(sku, 0) + quantity
 
     def remove_item(self, sku):
-        self.validate_in_cart(sku)
+        self.validated_in_cart(sku)
         self._items_in_cart.pop(sku)
 
     def update_item_quantity(self, sku, quantity):
         Quantity.validated(quantity)
-        validate_in_inventory(sku, quantity)
-        self.validate_in_cart(sku)
+        validated_in_inventory(sku, quantity)
+        self.validated_in_cart(sku)
         self._items_in_cart[sku] = int(quantity)
 
     def total_cost(self):
         cost = 0
         for item in self._items_in_cart:
-            cost += item.price
+            cost += catalog[item]["price"] * self._items_in_cart[item]
         return cost
