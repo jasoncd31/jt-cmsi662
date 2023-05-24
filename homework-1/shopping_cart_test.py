@@ -78,8 +78,33 @@ class TestShoppingCart(unittest.TestCase):
         self.cart.remove_item("YYY_JIL_77")
         self.assertFalse("YYY_JIL_77" in self.cart.items_in_cart)
 
+    def test_update(self):
+        self.cart.add_item("YYY_JIL_77", 7)
+        self.assertEqual(self.cart.items_in_cart["YYY_JIL_77"], 7)
+        self.cart.add_item("YYY_JIL_77", 3)
+        self.assertEqual(self.cart.items_in_cart["YYY_JIL_77"], 10)
+        self.cart.update_item_quantity("YYY_JIL_77", 5)
+        self.assertEqual(self.cart.items_in_cart["YYY_JIL_77"], 5)
+        with self.assertRaises(ValueError):
+            self.cart.update_item_quantity("YYY_JIL_77", 0)
+        with self.assertRaises(ValueError):
+            self.cart.update_item_quantity("YYY_JIL_77", -5)
+        with self.assertRaises(ValueError):
+            self.cart.update_item_quantity("YYY_JIL_77", 999)
+
+    def test_properties(self):
+        self.cart.items_in_cart.update({"hello": 4})
+        self.assertFalse("hello" in self.cart.items_in_cart)
+        customer_id = self.cart.customer_id
+        customer_id = "new_id"
+        self.assertFalse(customer_id == self.cart.customer_id)
+        with self.assertRaises(AttributeError):
+            self.cart.customer_id = "ABC12345DE-Q"
+
+
 if __name__ == '__main__':
     unittest.main()
+
 
 #     def test_cart_remove(self):
 #         self.cart.remove_item(Item('Milk', 3.50))
