@@ -42,10 +42,27 @@ catalog = {
     }
 }
 
+inventory = {
+  "ABC_DEF_21": 100,
+  "ZZZ_BOB_77": 200,
+  "XXX_ROB_77": 300,
+  "YYY_JIL_77": 400,
+  "WWW_BIL_77": 500
+}
+
+"""
+Validates whether or not the desired quantity is available in the inventory
+"""
+def validate_in_inventory(sku, desired_quantity):
+    if sku not in inventory:
+        raise ValueError(f"Invalid SKU: {sku}")
+    if desired_quantity > inventory[sku]:
+        raise ValueError("Desired quantity exceeds actual inventory")
+
 """
 Validates whether or not the catalog has the SKU
 """
-def validate_in_catalog(catalog, sku):
+def validate_in_catalog(sku):
     if sku not in catalog:
         raise ValueError(f"Invalid SKU: {sku}")
 
@@ -87,28 +104,22 @@ Class for an item that a customer can purchase
 class Item():
     #Creates an item object to be placed in the shopping cart.
     def __init__(self, name, price, sku, description):
-        self.name = validated_string(name, 32)
-        self.price = validated_number(price, .01, 999999.99)
-        self.sku = SKU.validated(sku)
-        self.description = validated_string(description, 1000)
+        self._name = validated_string(name, 32)
+        self._price = validated_number(price, .01, 999999.99)
+        self._sku = SKU.validated(sku)
+        self._description = validated_string(description, 1000)
 
     @property
     def item_id(self):
-        return self.item_id.deepcopy()
+        return self._sku
 
     @property
     def item_name(self):
-        return self.item_name.deepcopy()
+        return self._name
 
     @property
     def price(self):
-        return self.price.deepcopy()
-
-    @price.setter
-    def price(self, price):
-        if price < 0:
-            raise ValueError("Price cannot be negative.")
-        self.price = price
+        return self._price
 
 
 """
@@ -126,12 +137,17 @@ class SKU():
     
     def __init__(self, code):
         code = self.validated(code)
-        self.code = code
+        self._code = code
+    
+    @property
+    def sku(self):
+        return self._code
 
 """
 Quantity class to validate quantities of an item
 """
 class Quantity():
+
     def validate(quantity):
         if type(quantity) != int:
             raise TypeError("Quantity must be an integer")
@@ -142,64 +158,61 @@ class Quantity():
         return quantity
     
     def __init__(self, quantity):
-        self.quantity = self.validate(quantity)
+        self._quantity = Quantity.validate(quantity)
 
     @property
     def quantity(self):
-        return self.quantity.deepcopy()
+        return self._quantity
 
 """
 The Shopping Cart class
 """
-class ShoppingCart(object):
+class ShoppingCart:
     #Creates shopping cart objects for users of our fine website.
     def __init__(self, customer_id):
-        self.cart_id = uuid.uuid4()
-        self.customer_id = validate_customer_id(customer_id)
-        self.items_in_cart = {}
+        self._cart_id = uuid.uuid4()
+        self._customer_id = validate_customer_id(customer_id)
+        self._items_in_cart = {}
 
     @property
     def cart_id(self):
-        return self.cart_id.deepcopy()
+        return self._cart_id
     
     @property
     def customer_id(self):
-        return self.customer_id.deepcopy()
+        return self._customer_id
     
     @property
     def items_in_cart(self):
-        return self.items_in_cart.deepcopy()
+        return self._items_in_cart.deepcopy()
     
     def validate_in_cart(self, sku):
         SKU.validated(sku)
         validate_in_catalog(sku)
-        if sku in self.items_in_cart:
+        if sku in self._items_in_cart:
             return True
         else:
             raise ValueError("item not in cart")
 
     def add_item(self, sku, quantity):
-        # validate SKU
-        # validate product is in catalog
         SKU.validated(sku)
         Quantity.validate(quantity)
         validate_in_catalog(catalog, sku)
-        if self.validate_in_cart(sku):
-            self.items_in_cart[sku] += quantity
-        else:
-            self.items_in_cart[sku] = quantity
+        validate_in_inventory(sku, quantity)
+        self._items_in_cart[sku] = self._items_in_cart.get(sku, 0) + quantity
 
     def remove_item(self, sku):
         self.validate_in_cart(sku)
-        self.items_in_cart.pop(sku)
+        self._items_in_cart.pop(sku)
 
     def update_item_quantity(self, sku, quantity):
         Quantity.validated(quantity)
+        validate_in_inventory(sku, quantity)
         self.validate_in_cart(sku)
-        self.items[sku] = int(quantity)
+        self._items_in_cart[sku] = int(quantity)
 
     def total_cost(self):
         cost = 0
-        for item in self.items_in_cart:
+        for item in self._items_in_cart:
             cost += item.price
-        return cost.deepcopy()
+        return cost
