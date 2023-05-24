@@ -14,19 +14,83 @@
 import uuid
 import re
 
+catalog = {
+    "ABC_DEF_21": {
+        "sku": "ABC_DEF_21",
+        "description": "Widget",
+        "price": 10.0,
+    },
+    "ZZZ_BOB_77": {
+        "sku": "ZZZ_BOB_77",
+        "description": "Thing",
+        "price": 20.0,
+    },
+    "XXX_ROB_77": {
+        "sku": "XXX_ROB_77",
+        "description": "Cosa",
+        "price": 15.0,
+    },
+    "YYY_JIL_77": {
+        "sku": "YYY_JIL_77",
+        "description": "Stuff",
+        "price": 200.0,
+    },
+    "WWW_BIL_77": {
+        "sku": "WWW_BIL_77",
+        "description": "Cool stuff",
+        "price": 0.1,
+    }
+}
+
+"""
+Validates whether or not the catalog has the SKU
+"""
+def validate_in_catalog(catalog, sku):
+    if sku not in catalog:
+        raise ValueError(f"Invalid SKU: {sku}")
+
+"""
+Checks to see if a customer id follows the specified format
+"""
 def validate_customer_id(customer_id):
     valid_id = re.match(r'[a-zA-Z]{3}\d{5}[a-zA-Z]{2}[-][A|Q]', customer_id)
     if not valid_id:
         raise Exception("Not a valid customer id")
     return customer_id
 
+"""
+Checks if object is string and is under a certain length
+"""
+def validated_string(value, max_length):
+    if not isinstance(value, str):
+        raise ValueError("Value must be a string")
+    if len(value) > max_length:
+        raise ValueError(f"Value must be no more than {max_length} characters")
+    return value
+
+
+"""
+Checks to see if a number is in bounds
+"""
+def validated_number(value, minimum, maximum):
+    if not isinstance(value, (int, float)):
+        raise ValueError("Value must be a number")
+    if value < minimum:
+        raise ValueError(f"Value must be at least {minimum}")
+    if value > maximum:
+        raise ValueError(f"Value must be at most {maximum}")
+    return value
+
+"""
+Class for an item that a customer can purchase
+"""
 class Item():
     #Creates an item object to be placed in the shopping cart.
-    def __init__(self, name, price):
-        self.name = name
-        self.price = price
-        self.item_id = uuid.uuid4()
-        self.item_name = re.compile(r'[a-zA-Z]{1,20}')
+    def __init__(self, name, price, sku, description):
+        self.name = validated_string(name, 32)
+        self.price = validated_number(price, .01, 999999.99)
+        self.sku = SKU.validated(sku)
+        self.description = validated_string(description, 1000)
 
     @property
     def item_id(self):
@@ -46,6 +110,10 @@ class Item():
             raise ValueError("Price cannot be negative.")
         self.price = price
 
+
+"""
+SKU class to validate SKUs
+"""
 class SKU(): 
     def validated(code): 
         # if code isn't a string, throw an error
@@ -54,23 +122,23 @@ class SKU():
         # if code doesn't match the regex, throw an error
         if (re.match(r'[A-Z]{3}_[A-Z]{3}_\d{2}$', code)):
             raise TypeError("SKU improperly formatted.")
-            
         return code
+    
     def __init__(self, code):
-        code = validated(code)
+        code = self.validated(code)
         self.code = code
 
-    
-
-
+"""
+Quantity class to validate quantities of an item
+"""
 class Quantity():
     def validate(quantity):
         if type(quantity) != int:
             raise TypeError("Quantity must be an integer")
         if quantity <= 0:
-            raise Error("Quantity must be greater than 0")
+            raise ValueError("Quantity must be greater than 0")
         if quantity > 1000:
-            raise Error("Quantity can't be greater than 1000")
+            raise ValueError("Quantity can't be greater than 1000")
         return quantity
     
     def __init__(self, quantity):
@@ -80,9 +148,11 @@ class Quantity():
     def quantity(self):
         return self.quantity.deepcopy()
 
+"""
+The Shopping Cart class
+"""
 class ShoppingCart(object):
     #Creates shopping cart objects for users of our fine website.
-
     def __init__(self, customer_id):
         self.cart_id = uuid.uuid4()
         self.customer_id = validate_customer_id(customer_id)
@@ -99,26 +169,37 @@ class ShoppingCart(object):
     @property
     def items_in_cart(self):
         return self.items_in_cart.deepcopy()
+    
+    def validate_in_cart(self, sku):
+        SKU.validated(sku)
+        validate_in_catalog(sku)
+        if sku in self.items_in_cart:
+            return True
+        else:
+            raise ValueError("item not in cart")
 
-    def add_item(self, product, quantity):
+    def add_item(self, sku, quantity):
         # validate SKU
         # validate product is in catalog
+        SKU.validated(sku)
         Quantity.validate(quantity)
-        if product in self.items_in_cart:
-            self.items_in_cart[product] += quantity
+        validate_in_catalog(catalog, sku)
+        if self.validate_in_cart(sku):
+            self.items_in_cart[sku] += quantity
         else:
-            self.items_in_cart[product] = quantity
-        
+            self.items_in_cart[sku] = quantity
 
-    def remove_item(self, product, quantity):
-        # Remove product from the cart.
-        # validate SKU
-        if product in self.items_in_cart:
-            if quantity > self.items_in_cart[product]:
-                print ("Quantity requested exceeds quantity in cart.")
-            else:
-                self.items_in_cart[product] -= quantity
-                print (quantity + " of " + product + " removed.")
-        else:
-            print (product + " is not in the cart.")
-            
+    def remove_item(self, sku):
+        self.validate_in_cart(sku)
+        self.items_in_cart.pop(sku)
+
+    def update_item_quantity(self, sku, quantity):
+        Quantity.validated(quantity)
+        self.validate_in_cart(sku)
+        self.items[sku] = int(quantity)
+
+    def total_cost(self):
+        cost = 0
+        for item in self.items_in_cart:
+            cost += item.price
+        return cost.deepcopy()
