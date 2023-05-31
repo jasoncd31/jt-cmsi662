@@ -1,8 +1,6 @@
-import java.util.*;
-
-public class FieldAccessibility {
+public class FieldAccessibilityExample {
     public static void main(String[] args) {
-        FieldAccessibilityCart tanyasCart = new FieldAccessibilityCart();
+        SimpleShoppingCart tanyasCart = new SimpleShoppingCart();
         tanyasCart.addToCart("Banana", 1.0);
         System.out.println("cart: " + tanyasCart.cart());
         System.out.println("price: " + tanyasCart.cartTotal() + "\n");
@@ -13,17 +11,9 @@ public class FieldAccessibility {
 
         // Code that won't run due to private fields, keeping these
         // fields safe
-        // try {
-        //     tanyasCart.cartTotal = 4.0;
-        // } catch(Exception e) {
-        //     System.out.println("Cannot modify private variable");
-        // }
+        // tanyasCart.cartTotal = 4.0;
+        // tanyasCart.cart.remove("Banana");
 
-        // try {
-        //     tanyasCart.cart.remove("Banana");
-        // } catch(Exception e) {
-        //     System.out.println("Cannot modify private variable");
-        // }
 
     }
 }
