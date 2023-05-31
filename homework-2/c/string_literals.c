@@ -8,7 +8,5 @@ int main()
 {
     char str[] = "Hi Dr. toal!";
     str[7] = 'T';   
-
-
     return 0;
 }
