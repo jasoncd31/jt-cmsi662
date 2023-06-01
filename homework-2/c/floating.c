@@ -1,5 +1,3 @@
-// a c program that loops using an integer
-
 #include <stdio.h>
 
 int main(void)

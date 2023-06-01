@@ -1,3 +1,4 @@
+// code partially generated using GitHub Copilot and Google's Bard
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
