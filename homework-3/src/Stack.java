@@ -17,8 +17,9 @@ interface Validate {
     }
 
     static void integerRange(int value, int minimum, int maximum) {
-        ok(value < minimum, "Value must be at least " + minimum);
-        ok(value >= maximum, "Value must be less than " + maximum);
+        ok(value >= minimum, "Must be at least " + minimum);
+        ok(value <= maximum, "Must be at most " + maximum);
+
     }
 }
 
@@ -29,7 +30,7 @@ public class Stack {
     private int topIndex;
 
     public Stack(int max) {
-        Validate.integerRange(max, 0, Integer.MAX_VALUE);
+        Validate.integerRange(max, 1, Integer.MAX_VALUE);
         maxSize = max;
         stackArray = new String[maxSize];
         topIndex = -1;
@@ -55,8 +56,12 @@ public class Stack {
         return (topIndex == -1);
     }
 
+    public int size() {
+        return topIndex + 1;
+    }
+
     private void expandStack () {
-    	if (topIndex < stackArray.length) {
+    	if (topIndex+1 < stackArray.length) {
     		return;
     	}
         Validate.integerRange(maxSize, 0, Integer.MAX_VALUE);
