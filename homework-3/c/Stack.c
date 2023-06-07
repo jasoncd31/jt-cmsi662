@@ -3,74 +3,60 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
+#include "stack.h"
 
-typedef struct Node {
-    int data;
-    struct Node *next;
-} Node;
+#define STACK_UNDERFLOW -1
+#define STACK_OVERFLOW -2
 
-typedef struct Stack {
-    Node *top;
-} Stack;
-
-Stack *createStack() {
+Stack *stack_create(unsigned int capacity) {
     Stack *stack = (Stack *) malloc(sizeof(Stack));
-    stack->top = NULL;
+    stack->capacity = capacity;
+    stack->top = -1;
+    stack->array = (char**) malloc(stack->capacity * sizeof(char*));
     return stack;
 }
 
-bool isEmpty(Stack *stack) {
-    return stack->top == NULL;
+bool stack_is_empty(Stack *stack) {
+    return stack->top == -1;
 }
 
-void push(Stack *stack, int data) {
-    Node *node = (Node *) malloc(sizeof(Node));
-    node->data = data;
-    node->next = stack->top;
-    stack->top = node;
+bool stack_is_full(Stack *stack) {
+    return stack->top == stack->capacity - 1;
 }
 
-int pop(Stack *stack) {
-    if (isEmpty(stack)) {
-        printf("Stack is empty\n");
-        return -1;
+void stack_push(Stack *stack, char* item) {
+    if (stack_is_full(stack)) {
+        exit(STACK_OVERFLOW);
     }
-    Node *node = stack->top;
-    int data = node->data;
-    stack->top = node->next;
-    free(node);
-    return data;
+    stack->array[++stack->top] = item;
 }
 
-int peek(Stack *stack) {
-    if (isEmpty(stack)) {
-        printf("Stack is empty\n");
-        return -1;
+char* stack_pop(Stack *stack) {
+    if (stack_is_empty(stack)) {
+        exit(STACK_UNDERFLOW);
     }
-    return stack->top->data;
+    return stack->array[stack->top--];
 }
 
-void printStack(Stack *stack) {
-    if (isEmpty(stack)) {
-        printf("Stack is empty\n");
-        return;
+char* stack_peek(Stack *stack) {
+    if (stack_is_empty(stack)) {
+        exit(STACK_UNDERFLOW);
     }
-    Node *node = stack->top;
-    while (node != NULL) {
-        printf("%d ", node->data);
-        node = node->next;
-    }
-    printf("\n");
+    return stack->array[stack->top];
+}
+
+void stack_destroy(Stack *stack) {
+    free(stack->array);
+    free(stack);
 }
 
 int main() {
-    Stack *stack = createStack();
-    push(stack, 1);
-    push(stack, 2);
-    push(stack, 3);
-    printStack(stack);
-    printf("%d\n", pop(stack));
-    printf("%d\n", peek(stack));
-    printStack(stack);
+    Stack *stack = stack_create(10);
+    stack_push(stack, "Hello");
+    stack_push(stack, "World");
+    printf("%s\n", stack_pop(stack));
+    printf("%s\n", stack_pop(stack));
+    stack_destroy(stack);
     return 0;
 }
