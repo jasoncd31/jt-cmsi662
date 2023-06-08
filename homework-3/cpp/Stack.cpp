@@ -1,87 +1,79 @@
+//a c++ program that makes a Stack class using smart pointers
+
 #include <iostream>
 #include <memory>
 #include <string>
 
-namespace Validate {
-void ok(bool condition, const std::string& message) {
-    if (!condition) {
-        throw std::invalid_argument(message);
-    }
-}
-
-void notNull(const void* value) {
-    ok(value != nullptr, "String must not be null");
-}
-
-void notEmpty(int topIndex) {
-    ok(topIndex != 0, "Stack is empty");
-}
-
-void integerRange(int value, int minimum, int maximum) {
-    ok(value >= minimum, "Must be at least " + std::to_string(minimum));
-    ok(value <= maximum, "Must be at most " + std::to_string(maximum));
-}
-}  // namespace Validate
 using namespace std;
 
-template <typename T>
-
 class Stack {
-   private:
-    unique_ptr<T[]> data;
-    int size;
-    int capacity;
-
-   public:
-    Stack() {
-        data = make_unique<T[]>(1);
-        size = 0;
-        capacity = 1;
-    }
-
-    ~Stack() = default;
-
-    void push(T value) {
-        Validate::notNull(&value);
-        if (size == capacity) {
-            auto new_data = make_unique<T[]>(capacity * 2);
-            for (int i = 0; i < size; i++) {
-                new_data[i] = data[i];
-            }
-            data = std::move(new_data);
-            capacity *= 2;
+    private:
+        unique_ptr<string[]> array;
+        int top;
+        int capacity;
+    public:
+        Stack(unsigned int capacity) {
+            this->array = make_unique<string[]>(capacity);
+            this->top = -1;
+            this->capacity = capacity;
         }
-        data[size++] = value;
-    }
-
-    T pop() {
-        Validate::notEmpty(topIndex);
-        T value = data[--size];
-        return value;
-    }
-
-    T peek() {
-        Validate::notEmpty(topIndex);
-        return data[size - 1];
-    }
-
-    bool empty() const {
-        return size == 0;
-    }
-
-    int getSize() const {
-        return size;
-    }
+        ~Stack() {
+            cout << "Stack destructor called" << endl;
+        }
+        void push(string value) {
+            if (this->isFull()) {
+                cout << "Stack is full" << endl;
+                return;
+            }
+            this->top++;
+            this->array[this->top] = value;
+        }
+        string pop() {
+            if (this->isEmpty()) {
+                cout << "Stack is empty" << endl;
+                return "";
+            }
+            string value = this->array[this->top];
+            this->top--;
+            return value;
+        }
+        string peek() {
+            if (this->isEmpty()) {
+                cout << "Stack is empty" << endl;
+                return "";
+            }
+            return this->array[this->top];
+        }
+        bool isEmpty() {
+            return this->top == -1;
+        }
+        bool isFull() {
+            return this->top == this->capacity - 1;
+        }
+        int getSize() {
+            return this->top + 1;
+        }
 };
 
-int main() {
-    Stack<std::string> stack;
-    stack.push("Hello");
-    stack.push("World");
-    std::cout << "Size: " << stack.getSize() << std::endl;
-    std::cout << "Top element: " << stack.peek() << std::endl;
-    std::cout << "Popped element: " << stack.pop() << std::endl;
-    std::cout << "Size: " << stack.getSize() << std::endl;
 
+
+int main(){
+    //make a stack object
+    Stack s(5);
+    //push some values
+    s.push("hello");
+    s.push("world");
+    s.push("this");
+    s.push("is");
+    s.push("a");
+    s.push("test");
+    //pop some values
+    cout << s.pop() << endl;
+    cout << s.pop() << endl;
+    cout << s.pop() << endl;
+    //peek at the top value
+    cout << s.peek() << endl;
+    //get the size of the stack
+    cout << s.getSize() << endl;
     return 0;
 }
