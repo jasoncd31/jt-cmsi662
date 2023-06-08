@@ -1,4 +1,5 @@
 // A Java class that is the implementation of the Stack ADT
+import java.util.EmptyStackException;
 import java.util.Objects;
 
 interface Validate {
@@ -13,7 +14,9 @@ interface Validate {
     }
 
     static void notEmpty(int topIndex) {
-        ok(topIndex != -1, "Stack is empty");
+        if (topIndex == -1) {
+            throw new EmptyStackException();
+        }
     }
 
     static void integerRange(int value, int minimum, int maximum) {
@@ -25,31 +28,34 @@ interface Validate {
 
 
 public class Stack {
-    private int maxSize;
-    private String[] stackArray;
+    private String[] elements;
     private int topIndex;
+    private static final double ENLARGE = 2;
+    private static final double SHRINK = .5;
 
-    public Stack(int max) {
-        Validate.integerRange(max, 1, Integer.MAX_VALUE);
-        maxSize = max;
-        stackArray = new String[maxSize];
+    public Stack(int capacity) {
+        Validate.integerRange(capacity, 1, Integer.MAX_VALUE);
+        elements = new String[capacity];
         topIndex = -1;
     }
 
     public void push(String stringToAdd) {
         Validate.notNull(stringToAdd);
-        expandStack();
-        stackArray[++topIndex] = stringToAdd;
+        elements[++topIndex] = stringToAdd;
+        refactorCapacity();
     }
 
     public String pop() {
         Validate.notEmpty(topIndex);
-        return stackArray[topIndex--];
+        String popped = elements[topIndex];
+        elements[topIndex--] = null;
+        refactorCapacity();
+        return popped;
     }
 
     public String peek() {
         Validate.notEmpty(topIndex);
-        return stackArray[topIndex];
+        return elements[topIndex];
     }
 
     public boolean empty() {
@@ -60,15 +66,23 @@ public class Stack {
         return topIndex + 1;
     }
 
-    private void expandStack () {
-    	if (topIndex+1 < stackArray.length) {
-    		return;
+    /**
+     * Refactors the array elements are stored in
+     * doubling the size when the array is full and 
+     * shrinking it by half when the array is only 1/4 
+     * filled, except for when the array is empty or there
+     * is only one element
+     */
+    private void refactorCapacity() {
+        int size = topIndex+1;
+        if ((size == 1 && elements.length !=1) || topIndex == -1 || (size < elements.length && size > ((int)(elements.length / 4)))) {
+            return;
     	}
-        Validate.integerRange(maxSize, 0, Integer.MAX_VALUE);
-    	String[] expandedStack = new String[stackArray.length * 2];
-    	for (int i = 0; i < stackArray.length; i++) {
-    		expandedStack[i] = stackArray[i];
-    	}
-    	stackArray = expandedStack;
+        double factor = (size == elements.length ? ENLARGE : SHRINK);
+        Validate.integerRange(elements.length, 0, Integer.MAX_VALUE);
+        String[] refactoredStack = new String[(int)(elements.length * factor)];
+        System.arraycopy(elements, 0, refactoredStack, 0, topIndex+1);
+        elements = refactoredStack;
     }
+
 }

@@ -1,5 +1,7 @@
 import static org.junit.Assert.*;
 
+import java.util.EmptyStackException;
+
 import org.junit.Test;
 
 public class StackTest {
@@ -46,7 +48,7 @@ public class StackTest {
     }
 
     
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = EmptyStackException.class)
     public void testNotEmpty() {
         Stack stack = new Stack(1);
         stack.pop();
@@ -69,6 +71,26 @@ public class StackTest {
         String s = null;
         Stack stack = new Stack(1);
         stack.push(s);
+    }
+
+    @Test
+    public void testRefactorBigger() {
+        Stack stack = new Stack(4);
+        stack.push("one");
+        stack.push("two");
+        stack.push("three");
+        stack.push("four");
+        stack.push("five");
+        stack.push("six");
+        stack.push("seven");
+        assertEquals("seven", stack.peek());
+        stack.pop();
+        stack.pop();
+        stack.pop();
+        stack.pop();
+        stack.pop();
+        stack.pop();
+        stack.pop();
     }
 
 }
