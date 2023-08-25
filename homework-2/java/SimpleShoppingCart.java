@@ -13,10 +13,22 @@ import java.util.*;
 public class SimpleShoppingCart {
     private Map<String, Double> cart;
     private double cartTotal;
+    private final Item[] items;
 
     public SimpleShoppingCart() {
         this.cart = new HashMap<>();
         this.cartTotal = 0.0;
+        this.items = null;
+    }
+
+    public SimpleShoppingCart(Item[] items) {
+        this.items = items;
+        this.cart = new HashMap<>();
+        this.cartTotal = 0.0;
+    }
+
+    public Item[] getItems() {
+        return items;
     }
 
     public void addToCart(String item, double price) {
